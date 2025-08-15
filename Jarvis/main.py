@@ -3,6 +3,10 @@ import speech_recognition as sr
 import webbrowser
 import pyttsx3
 import musicLibrary
+import requests 
+import sys
+
+newsapi = "4161e9b07e7b4adb950857fc91163f04"
 
 r = sr.Recognizer()
 
@@ -48,9 +52,25 @@ def processCommand(command):
         webbrowser.open(link) 
         speak("playing music")
     
+    
+    elif "news" in command.lower():
+        r = requests.get(f"https://newsapi.org/v2/top-headlines?country=in&apiKey={newsapi}")
+        
+        if r.status_code == 200:
+            #parse JSON response
+            data = r.json()
+            
+            #extract articles
+            articles = data.get('articles', [])
+            print("Headlines are:")
+
+            for article in articles:
+                speak(article['title'])
+    
     elif "shutdown" or "quit" or "exit" or "close" in command.lower():
         speak("Shutting down...")
-        return False
+        sys.exit(0)
+    
     else:
         print("Command cannot be processed. Sorry for the inconvenience.")
 
@@ -78,8 +98,7 @@ if __name__ == "__main__":
                     audio = r.listen(source)
                     command = r.recognize_google(audio)
                 
-                processCommand(command)
-                
+                processCommand(command)               
         
         except sr.UnknownValueError:
             print("Google Speech Recognition could not understand audio")
